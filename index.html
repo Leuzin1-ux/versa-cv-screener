@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV Screener | Versa Networks HR</title>
+    <link rel="icon" href="versa-logo-color.svg" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <!-- PDF.js for reading PDFs in browser -->
@@ -23,8 +24,9 @@
         /* ── Nav ── */
         .top-nav { display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:56px; background:var(--vn); border-bottom:1px solid var(--vb); position:sticky; top:0; z-index:100; }
         .nav-left { display:flex; align-items:center; gap:12px; }
-        .logo-text { font-weight:700; font-size:16px; color:var(--vt); text-decoration:none; }
+        .logo-text { font-weight:700; font-size:16px; color:var(--vt); text-decoration:none; display:flex; align-items:center; gap:10px; }
         .logo-text span { color:var(--vg); }
+        .logo-img { height:28px; }
         .nav-divider { width:1px; height:24px; background:var(--vb); }
         .app-title { font-weight:600; font-size:15px; color:var(--vm); }
         .app-title em { color:var(--vg); font-style:normal; }
@@ -227,7 +229,7 @@
 <!-- Nav -->
 <nav class="top-nav">
     <div class="nav-left">
-        <a href="#" class="logo-text">VERSA<span>NETWORKS</span></a>
+        <a href="#" class="logo-text"><img src="versa-logo-color.svg" alt="Versa Networks" class="logo-img"></a>
         <div class="nav-divider"></div>
         <span class="app-title">CV <em>Screener</em></span>
     </div>
