@@ -206,6 +206,36 @@
         /* ── CV Preview ── */
         .cv-preview { max-height:300px; overflow-y:auto; padding:14px; background:var(--vd); border-radius:8px; font-size:12px; color:var(--vm); white-space:pre-wrap; word-wrap:break-word; line-height:1.5; margin-top:10px; border:1px solid var(--vb); }
 
+        /* ── Compare View ── */
+        .compare-grid { display:grid; gap:16px; }
+        .compare-select { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+        .compare-chip { padding:6px 14px; border-radius:20px; border:1px solid var(--vb); background:var(--vd); font-size:13px; cursor:pointer; transition:all .2s; font-family:inherit; color:var(--vt); }
+        .compare-chip:hover { border-color:var(--vg); }
+        .compare-chip.selected { border-color:var(--vg); background:rgba(0,200,83,.1); color:var(--vg); }
+        .compare-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .compare-table th { text-align:left; padding:10px 14px; background:var(--vd); color:var(--vm); font-size:11px; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid var(--vb); position:sticky; top:0; }
+        .compare-table td { padding:10px 14px; border-bottom:1px solid var(--vb); vertical-align:top; }
+        .compare-table tr:hover td { background:rgba(0,200,83,.03); }
+        .compare-table .dim-label { font-weight:600; color:var(--vm); min-width:130px; }
+        .compare-table .val-pass { color:var(--green); font-weight:600; }
+        .compare-table .val-warn { color:var(--amber); font-weight:600; }
+        .compare-table .val-fail { color:var(--red); font-weight:600; }
+        .compare-winner { background:rgba(0,200,83,.06) !important; }
+
+        /* ── Template Modal ── */
+        .tmpl-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; }
+        .tmpl-card { padding:16px; border-radius:10px; border:1px solid var(--vb); background:var(--vd); cursor:pointer; transition:all .2s; text-align:center; }
+        .tmpl-card:hover { border-color:var(--vg); background:rgba(0,200,83,.04); }
+        .tmpl-card i { font-size:28px; color:var(--vg); margin-bottom:8px; }
+        .tmpl-card h4 { font-size:14px; margin-bottom:4px; }
+        .tmpl-card p { font-size:11px; color:var(--vm); }
+
+        /* ── Extracted Info ── */
+        .extracted-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:8px; margin-top:10px; }
+        .extracted-item { padding:8px 12px; background:var(--vd); border-radius:8px; border:1px solid var(--vb); }
+        .extracted-item .ei-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--vm); margin-bottom:2px; }
+        .extracted-item .ei-val { font-size:13px; }
+
         /* ── Responsive ── */
         @media (max-width:768px) {
             .req-grid { grid-template-columns:1fr; }
@@ -244,6 +274,7 @@
     <button class="tab-btn active" onclick="switchTab('reqs')"><i class="fas fa-briefcase"></i> Job Reqs <span class="count" id="req-count">0</span></button>
     <button class="tab-btn" onclick="switchTab('screen')"><i class="fas fa-file-upload"></i> Screen CVs</button>
     <button class="tab-btn" onclick="switchTab('results')"><i class="fas fa-poll"></i> Results <span class="count" id="res-count">0</span></button>
+    <button class="tab-btn" onclick="switchTab('compare')"><i class="fas fa-columns"></i> Compare</button>
 </div>
 
 <!-- ═══════════ TAB 1: JOB REQS ═══════════ -->
@@ -301,6 +332,7 @@
 
         <div class="btn-row">
             <button class="btn btn-p" onclick="saveReq()"><i class="fas fa-save"></i> Save Requisition</button>
+            <button class="btn btn-s" onclick="openTemplateModal()"><i class="fas fa-magic"></i> Use Template</button>
             <button class="btn btn-s" onclick="resetReqForm()"><i class="fas fa-undo"></i> Clear</button>
         </div>
     </div>
@@ -368,6 +400,32 @@
 </div>
 </div>
 
+<!-- ═══════════ TAB 4: COMPARE ═══════════ -->
+<div class="tab-content" id="tab-compare">
+<div class="container">
+    <div class="panel">
+        <h3><i class="fas fa-columns"></i> Side-by-Side Candidate Comparison</h3>
+        <p style="font-size:13px;color:var(--vm);margin-bottom:14px">Select 2-3 candidates to compare head-to-head. Only PASS and MAYBE candidates are shown.</p>
+        <div class="compare-select" id="compare-select"></div>
+        <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-p btn-sm" onclick="renderComparison()"><i class="fas fa-balance-scale"></i> Compare Selected</button>
+            <button class="btn btn-s btn-sm" onclick="clearComparison()"><i class="fas fa-undo"></i> Clear</button>
+        </div>
+    </div>
+    <div id="compare-output"></div>
+</div>
+</div>
+
+<!-- ═══════════ TEMPLATE MODAL ═══════════ -->
+<div class="modal-overlay" id="template-modal">
+    <div class="modal">
+        <h3><i class="fas fa-magic"></i> Job Req Templates</h3>
+        <p style="font-size:13px;color:var(--vm);margin-bottom:16px">Pre-configured templates for common Versa Networks roles. Click to auto-fill the form.</p>
+        <div class="tmpl-grid" id="tmpl-grid"></div>
+        <div class="btn-row"><button class="btn btn-s" onclick="closeTemplateModal()">Cancel</button></div>
+    </div>
+</div>
+
 <!-- ═══════════ CV PREVIEW MODAL ═══════════ -->
 <div class="modal-overlay" id="cv-modal">
     <div class="modal">
@@ -398,6 +456,7 @@ function switchTab(id) {
     document.querySelector('[onclick="switchTab(\'' + id + '\')"]').classList.add('active');
     if (id === 'screen') renderReqSelector();
     if (id === 'results') renderResults();
+    if (id === 'compare') renderCompareSelector();
 }
 
 // ══════════════════════════════════════════════
@@ -719,11 +778,10 @@ function analyzeCV(file, req) {
     var text = file.text.toLowerCase();
     var textOriginal = file.text;
 
-    // Extract candidate name (best guess: first line or first capitalized words)
-    var nameGuess = extractName(textOriginal);
-
-    // Extract title guess
-    var titleGuess = extractTitle(textOriginal);
+    // Smart extraction
+    var extracted = extractDetailed(textOriginal);
+    var nameGuess = extracted.name;
+    var titleGuess = extracted.title;
 
     // ── Keyword matching ──
     var reqKw = (req.keywords || []);
@@ -891,37 +949,9 @@ function analyzeCV(file, req) {
         reason: reason,
         disqualified: disqualified,
         dqReason: dqReason,
-        cvText: file.text.substring(0, 2000) // store first 2000 chars for preview
+        extracted: extracted,
+        cvText: file.text.substring(0, 2000)
     };
-}
-
-function extractName(text) {
-    // Try first non-empty line that looks like a name (2-4 capitalized words)
-    var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
-    for (var i = 0; i < Math.min(5, lines.length); i++) {
-        var line = lines[i].replace(/[^a-zA-Z\s\-'\.]/g, '').trim();
-        var words = line.split(/\s+/);
-        if (words.length >= 2 && words.length <= 5) {
-            var allCaps = words.every(function(w) { return w.length > 0 && w[0] === w[0].toUpperCase(); });
-            if (allCaps && line.length < 40) return line;
-        }
-    }
-    // Fallback: look for "name:" pattern
-    var nameMatch = text.match(/(?:name|full name)\s*[:\-]\s*(.+)/i);
-    if (nameMatch) return nameMatch[1].trim().substring(0, 40);
-    return lines[0] ? lines[0].substring(0, 40) : 'Unknown';
-}
-
-function extractTitle(text) {
-    var titlePatterns = [
-        /(?:title|position|role|designation)\s*[:\-]\s*(.+)/i,
-        /(?:outbound|inbound)?\s*(?:sdr|bdr|sales development|business development|account executive|sales engineer|customer success)/i
-    ];
-    for (var i = 0; i < titlePatterns.length; i++) {
-        var m = text.match(titlePatterns[i]);
-        if (m) return (m[1] || m[0]).trim().substring(0, 60);
-    }
-    return '';
 }
 
 // ══════════════════════════════════════════════
@@ -996,7 +1026,17 @@ function renderResults() {
             '<div class="cand-meta" style="margin-top:10px">' +
             '<div class="meta-box"><div class="meta-lbl">CV Integrity</div><div class="meta-val ' + (cvClean ? 'clean' : 'issue') + '">' + (cvClean ? 'Clean' : esc(c.cvNotes)) + '</div></div>' +
             '<div class="meta-box"><div class="meta-lbl">Red Flag</div><div class="meta-val ' + (noFlags ? 'none' : 'flag') + '">' + (noFlags ? 'None' : esc(c.redFlags)) + '</div></div>' +
-            '</div></div>';
+            '</div>' +
+            (c.extracted ? '<div class="extracted-grid">' +
+                (c.extracted.yearsExp ? '<div class="extracted-item"><div class="ei-label">Experience</div><div class="ei-val">' + c.extracted.yearsExp + ' years</div></div>' : '') +
+                (c.extracted.education ? '<div class="extracted-item"><div class="ei-label">Education</div><div class="ei-val">' + esc(c.extracted.education) + '</div></div>' : '') +
+                (c.extracted.certs.length > 0 ? '<div class="extracted-item"><div class="ei-label">Certifications</div><div class="ei-val">' + esc(c.extracted.certs.join(', ')) + '</div></div>' : '') +
+                (c.extracted.companies.length > 0 ? '<div class="extracted-item"><div class="ei-label">Notable Companies</div><div class="ei-val">' + esc(c.extracted.companies.join(', ')) + '</div></div>' : '') +
+                (c.extracted.skills.length > 0 ? '<div class="extracted-item"><div class="ei-label">Tools & Skills</div><div class="ei-val">' + esc(c.extracted.skills.join(', ')) + '</div></div>' : '') +
+                (c.extracted.email ? '<div class="extracted-item"><div class="ei-label">Email</div><div class="ei-val">' + esc(c.extracted.email) + '</div></div>' : '') +
+                (c.extracted.location ? '<div class="extracted-item"><div class="ei-label">Location</div><div class="ei-val">' + esc(c.extracted.location) + '</div></div>' : '') +
+            '</div>' : '') +
+            '</div>';
     }).join('');
 
     // DQs
@@ -1093,6 +1133,313 @@ function copyShortlist() {
         text += '\n';
     });
     navigator.clipboard.writeText(text).then(function() { alert('Copied!'); });
+}
+
+// ══════════════════════════════════════════════
+//  JOB REQ TEMPLATES
+// ══════════════════════════════════════════════
+var JOB_TEMPLATES = [
+    {
+        name: 'Outbound SDR', icon: 'fa-phone-volume', desc: 'High-velocity cold calling role',
+        data: { title:'Outbound SDR', type:'outbound-sdr',
+            keywords:['cold calling','outbound','SDR','prospecting','pipeline generation','sales development','cadence','sequence'],
+            disqualifiers:['retail','e-commerce','inbound only','customer service only'],
+            niceToHave:['Salesforce','SalesLoft','Outreach','ZoomInfo','Apollo','MEDDIC','cybersecurity','SD-WAN','SASE'],
+            minMonths:6, maxStints:2 }
+    },
+    {
+        name: 'Outbound BDR', icon: 'fa-bullhorn', desc: 'Enterprise pipeline generation',
+        data: { title:'Outbound BDR', type:'outbound-bdr',
+            keywords:['BDR','business development','outbound','cold calling','enterprise','pipeline','prospecting'],
+            disqualifiers:['retail','e-commerce','inbound only','customer support'],
+            niceToHave:['Salesforce','LinkedIn Sales Navigator','MEDDIC','BANT','cybersecurity','networking','SD-WAN'],
+            minMonths:6, maxStints:2 }
+    },
+    {
+        name: 'Account Executive', icon: 'fa-handshake', desc: 'Full-cycle closing role',
+        data: { title:'Account Executive', type:'ae',
+            keywords:['account executive','AE','closing','quota','full cycle','negotiation','enterprise sales','solution selling'],
+            disqualifiers:['retail','e-commerce','customer service only','internship only'],
+            niceToHave:['MEDDIC','Challenger Sale','Salesforce','cybersecurity','SASE','SD-WAN','networking','$1M+ quota'],
+            minMonths:12, maxStints:2 }
+    },
+    {
+        name: 'Sales Engineer', icon: 'fa-cogs', desc: 'Technical pre-sales specialist',
+        data: { title:'Sales Engineer', type:'se',
+            keywords:['sales engineer','SE','pre-sales','presales','demo','POC','proof of concept','technical sales','solution architect'],
+            disqualifiers:['retail','customer support only'],
+            niceToHave:['SD-WAN','SASE','SSE','ZTNA','firewall','Palo Alto','Fortinet','Zscaler','Cisco','networking','cybersecurity','Python','API'],
+            minMonths:12, maxStints:2 }
+    },
+    {
+        name: 'Customer Success', icon: 'fa-heart', desc: 'Post-sale relationship manager',
+        data: { title:'Customer Success Manager', type:'csm',
+            keywords:['customer success','CSM','account management','renewal','upsell','NPS','onboarding','retention'],
+            disqualifiers:['retail','e-commerce'],
+            niceToHave:['Gainsight','Salesforce','cybersecurity','networking','SaaS','enterprise','QBR','health score'],
+            minMonths:6, maxStints:3 }
+    },
+    {
+        name: 'Channel Manager', icon: 'fa-network-wired', desc: 'Partner/channel sales',
+        data: { title:'Channel Account Manager', type:'other',
+            keywords:['channel','partner','VAR','distributor','reseller','alliance','partner program','co-sell'],
+            disqualifiers:['retail','e-commerce','customer support only'],
+            niceToHave:['cybersecurity','networking','SD-WAN','SASE','Palo Alto','Fortinet','Cisco','deal registration'],
+            minMonths:12, maxStints:2 }
+    }
+];
+
+function openTemplateModal() {
+    var el = document.getElementById('tmpl-grid');
+    el.innerHTML = JOB_TEMPLATES.map(function(t, i) {
+        return '<div class="tmpl-card" onclick="applyTemplate(' + i + ')">' +
+            '<i class="fas ' + t.icon + '"></i>' +
+            '<h4>' + esc(t.name) + '</h4>' +
+            '<p>' + esc(t.desc) + '</p></div>';
+    }).join('');
+    document.getElementById('template-modal').classList.add('active');
+}
+
+function closeTemplateModal() { document.getElementById('template-modal').classList.remove('active'); }
+
+function applyTemplate(idx) {
+    var t = JOB_TEMPLATES[idx].data;
+    resetReqForm();
+    document.getElementById('rq-title').value = t.title;
+    document.getElementById('rq-type').value = t.type;
+    document.getElementById('rq-min-months').value = t.minMonths;
+    document.getElementById('rq-max-stints').value = t.maxStints;
+    clearTags('rq-keywords-box'); clearTags('rq-dq-box'); clearTags('rq-nice-box');
+    t.keywords.forEach(function(k) { addTag('rq-keywords-box', k); });
+    t.disqualifiers.forEach(function(k) { addTag('rq-dq-box', k); });
+    t.niceToHave.forEach(function(k) { addTag('rq-nice-box', k); });
+    closeTemplateModal();
+}
+
+// ══════════════════════════════════════════════
+//  SMART CV EXTRACTION
+// ══════════════════════════════════════════════
+function extractDetailed(text) {
+    var info = { name:'', title:'', email:'', phone:'', location:'', yearsExp:0, education:'', certs:[], companies:[], skills:[] };
+    var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+    var lower = text.toLowerCase();
+
+    // Name: first line that looks like 2-4 capitalized words, not a common header
+    var skipWords = ['resume','curriculum','vitae','cv','summary','objective','profile','experience','education','contact','about'];
+    for (var i = 0; i < Math.min(8, lines.length); i++) {
+        var clean = lines[i].replace(/[^a-zA-Z\s\-'\.]/g, '').trim();
+        var words = clean.split(/\s+/).filter(function(w) { return w.length > 0; });
+        if (words.length >= 2 && words.length <= 5 && clean.length < 45) {
+            var lw = clean.toLowerCase();
+            if (skipWords.some(function(s) { return lw.indexOf(s) !== -1; })) continue;
+            var allCap = words.every(function(w) { return w[0] === w[0].toUpperCase() && w.length > 1; });
+            if (allCap) { info.name = clean; break; }
+        }
+    }
+    if (!info.name) {
+        var nm = text.match(/(?:name|full name)\s*[:\-]\s*(.+)/i);
+        info.name = nm ? nm[1].trim().substring(0, 45) : (lines[0] || 'Unknown').substring(0, 45);
+    }
+
+    // Email
+    var em = text.match(/[\w.\-+]+@[\w.\-]+\.\w{2,}/);
+    if (em) info.email = em[0];
+
+    // Phone
+    var ph = text.match(/(?:\+?\d{1,3}[\s\-]?)?\(?\d{2,4}\)?[\s\-]?\d{3,4}[\s\-]?\d{3,4}/);
+    if (ph) info.phone = ph[0].trim();
+
+    // Location
+    var locPatterns = [
+        /(?:location|city|based in|residing)\s*[:\-]\s*(.+)/i,
+        /(?:^|\n)\s*([\w\s]+,\s*(?:CA|NY|TX|FL|WA|IL|GA|MA|CO|VA|NC|OH|PA|AZ|NJ|OR|MD|CT|MN|WI|MO|TN|IN|SC|AL|LA|KY|OK|IA|AR|MS|KS|UT|NV|NE|NM|WV|ID|HI|ME|NH|RI|MT|DE|SD|ND|AK|VT|WY|DC|UK|DE|FR|ES|NL|BE|AT|CH|IE|IT|SE|NO|DK|FI|PT|PL|CZ|HU|RO|BG|HR|SI|SK|LT|LV|EE|AU|NZ|CA|MX|BR|IN|SG|JP|KR|AE|SA|IL|ZA))\s*(?:\n|$)/i
+    ];
+    for (var p = 0; p < locPatterns.length; p++) {
+        var lm = text.match(locPatterns[p]);
+        if (lm) { info.location = lm[1].trim().substring(0, 50); break; }
+    }
+
+    // Title: look for professional title near top
+    var titlePatterns = [
+        /(?:title|position|role|designation|headline)\s*[:\-]\s*(.+)/i,
+        /(?:^|\n)\s*((?:senior|junior|lead|principal|staff|vp|director|manager|head)?\s*(?:outbound|inbound)?\s*(?:sdr|bdr|sales development representative|business development representative|account executive|sales engineer|customer success manager|channel manager|sales manager|regional manager|territory manager|solution architect|solution engineer|pre-sales|presales consultant))/im
+    ];
+    for (var p = 0; p < titlePatterns.length; p++) {
+        var tm = text.match(titlePatterns[p]);
+        if (tm) { info.title = (tm[1] || tm[0]).trim().substring(0, 70); break; }
+    }
+
+    // Years of experience
+    var yoeMatch = lower.match(/(\d{1,2})\+?\s*(?:years?|yrs?)(?:\s+of)?\s+(?:experience|exp)/);
+    if (yoeMatch) {
+        info.yearsExp = parseInt(yoeMatch[1]);
+    } else {
+        // Calculate from date ranges
+        var allYears = [];
+        var ym;
+        var yp = /\b(19\d{2}|20\d{2})\b/g;
+        while ((ym = yp.exec(lower)) !== null) allYears.push(parseInt(ym[1]));
+        if (allYears.length >= 2) {
+            info.yearsExp = Math.max.apply(null, allYears) - Math.min.apply(null, allYears);
+        }
+    }
+
+    // Education
+    var eduPatterns = [
+        /(?:bachelor|b\.?s\.?|b\.?a\.?|b\.?sc|b\.?eng)\s*(?:of|in|,)?\s*[\w\s]{3,40}/i,
+        /(?:master|m\.?s\.?|m\.?a\.?|m\.?sc|mba|m\.?eng)\s*(?:of|in|,)?\s*[\w\s]{3,40}/i,
+        /(?:ph\.?d|doctorate|doctor of)\s*(?:of|in|,)?\s*[\w\s]{3,40}/i,
+        /(?:associate|a\.?s\.?|a\.?a\.?)\s*(?:of|in|,)?\s*[\w\s]{3,40}/i
+    ];
+    var degrees = [];
+    eduPatterns.forEach(function(p) {
+        var dm = text.match(p);
+        if (dm) degrees.push(dm[0].trim().substring(0, 60));
+    });
+    info.education = degrees.length > 0 ? degrees.join('; ') : '';
+
+    // Certifications
+    var certTerms = ['CISSP','CCNA','CCNP','CCIE','CompTIA','Security+','Network+','AWS Certified','Azure Certified',
+        'GCP Certified','PMP','ITIL','CEH','OSCP','CISM','CISA','PCNSE','NSE','CCSP',
+        'Salesforce Certified','HubSpot Certified','Google Analytics','ScrumMaster','SAFe'];
+    certTerms.forEach(function(c) {
+        if (lower.indexOf(c.toLowerCase()) !== -1) info.certs.push(c);
+    });
+
+    // Companies: look for well-known tech companies
+    var knownCompanies = ['Palo Alto Networks','Fortinet','Zscaler','Cisco','CrowdStrike','SentinelOne','Cloudflare',
+        'Netskope','Cato Networks','VMware','Broadcom','Juniper','Aruba','Check Point','Barracuda',
+        'Sophos','Trend Micro','McAfee','Symantec','FireEye','Mandiant','Rapid7','Tenable','Qualys',
+        'Splunk','Elastic','Datadog','Okta','Sailpoint','Proofpoint','Mimecast','KnowBe4',
+        'Microsoft','Google','Amazon','AWS','Salesforce','Oracle','SAP','IBM','Dell','HPE',
+        'Gartner','Versa Networks','Versa'];
+    knownCompanies.forEach(function(c) {
+        if (lower.indexOf(c.toLowerCase()) !== -1) info.companies.push(c);
+    });
+
+    // Skills extraction
+    var skillTerms = ['Salesforce','HubSpot','SalesLoft','Outreach','ZoomInfo','Apollo','LinkedIn Sales Navigator',
+        'Gong','Chorus','Clari','6sense','Demandbase','Drift','Intercom','MEDDIC','BANT','SPIN','Challenger',
+        'Sandler','Solution Selling','cold calling','prospecting','pipeline generation','forecasting',
+        'Python','JavaScript','SQL','API','REST','Docker','Kubernetes','Terraform','Ansible'];
+    skillTerms.forEach(function(s) {
+        if (lower.indexOf(s.toLowerCase()) !== -1) info.skills.push(s);
+    });
+
+    return info;
+}
+
+// ══════════════════════════════════════════════
+//  COMPARE VIEW
+// ══════════════════════════════════════════════
+var compareSelected = [];
+
+function renderCompareSelector() {
+    var el = document.getElementById('compare-select');
+    var candidates = screenResults.filter(function(c) { return !c.disqualified; })
+        .sort(function(a, b) { return (b.composite || 0) - (a.composite || 0); });
+
+    if (candidates.length === 0) {
+        el.innerHTML = '<p style="color:var(--vm);font-size:13px"><i class="fas fa-info-circle" style="color:var(--amber)"></i> No screened candidates yet. Screen some CVs first.</p>';
+        return;
+    }
+
+    el.innerHTML = candidates.map(function(c) {
+        var sel = compareSelected.indexOf(c.id) !== -1 ? ' selected' : '';
+        return '<button class="compare-chip' + sel + '" onclick="toggleCompare(' + c.id + ')">' +
+            c.verdictIcon + ' ' + esc(c.name) + '</button>';
+    }).join('');
+}
+
+function toggleCompare(id) {
+    var idx = compareSelected.indexOf(id);
+    if (idx !== -1) {
+        compareSelected.splice(idx, 1);
+    } else {
+        if (compareSelected.length >= 3) { alert('Max 3 candidates for comparison'); return; }
+        compareSelected.push(id);
+    }
+    renderCompareSelector();
+}
+
+function clearComparison() {
+    compareSelected = [];
+    renderCompareSelector();
+    document.getElementById('compare-output').innerHTML = '';
+}
+
+function renderComparison() {
+    if (compareSelected.length < 2) { alert('Select at least 2 candidates'); return; }
+
+    var cands = compareSelected.map(function(id) {
+        return screenResults.find(function(c) { return c.id === id; });
+    }).filter(Boolean);
+
+    var dims = [
+        { key:'verdict', label:'Verdict', format: function(c) { return c.verdictIcon + ' ' + c.verdict; } },
+        { key:'composite', label:'Composite Score', format: function(c) { return c.composite + '/60'; }, higher:true },
+        { key:'coldCall', label:'Cold Call /10', format: function(c) { return c.coldCall; }, higher:true },
+        { key:'techBG', label:'Tech Background /10', format: function(c) { return c.techBG; }, higher:true },
+        { key:'stability', label:'Stability /10', format: function(c) { return c.stability; }, higher:true },
+        { key:'matchedKw', label:'Keywords Matched', format: function(c) { return (c.matchedKw||[]).length + '/' + ((c.matchedKw||[]).length + (c.missedKw||[]).length); }, higher:true },
+        { key:'matchedNice', label:'Nice-to-Have', format: function(c) { return (c.matchedNice||[]).length; }, higher:true },
+        { key:'yearsExp', label:'Years Experience', format: function(c) { return c.extracted ? c.extracted.yearsExp + ' yrs' : 'N/A'; }, higher:true },
+        { key:'education', label:'Education', format: function(c) { return c.extracted && c.extracted.education ? c.extracted.education : 'Not detected'; } },
+        { key:'certs', label:'Certifications', format: function(c) { return c.extracted && c.extracted.certs.length > 0 ? c.extracted.certs.join(', ') : 'None detected'; } },
+        { key:'companies', label:'Notable Companies', format: function(c) { return c.extracted && c.extracted.companies.length > 0 ? c.extracted.companies.join(', ') : 'None detected'; } },
+        { key:'skills', label:'Tools & Skills', format: function(c) { return c.extracted && c.extracted.skills.length > 0 ? c.extracted.skills.join(', ') : 'None detected'; } },
+        { key:'cvNotes', label:'CV Integrity', format: function(c) { return c.cvNotes; } },
+        { key:'redFlags', label:'Red Flags', format: function(c) { return c.redFlags; } },
+        { key:'reason', label:'Verdict Reason', format: function(c) { return c.reason; } }
+    ];
+
+    var colW = Math.floor(80 / cands.length);
+
+    var html = '<div class="panel" style="margin-top:20px;overflow-x:auto">' +
+        '<h3><i class="fas fa-balance-scale"></i> Head-to-Head Comparison</h3>' +
+        '<table class="compare-table"><thead><tr><th style="width:20%">Dimension</th>';
+    cands.forEach(function(c) {
+        var vc = c.verdict === 'PASS' ? 'val-pass' : c.verdict === 'MAYBE' ? 'val-warn' : 'val-fail';
+        html += '<th style="width:' + colW + '%"><span class="' + vc + '">' + esc(c.name) + '</span></th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    dims.forEach(function(dim) {
+        html += '<tr>';
+        html += '<td class="dim-label">' + dim.label + '</td>';
+
+        // Find winner for numeric dims
+        var winnerIdx = -1;
+        if (dim.higher) {
+            var maxVal = -1;
+            cands.forEach(function(c, i) {
+                var v = dim.key === 'matchedKw' ? (c.matchedKw||[]).length :
+                    dim.key === 'matchedNice' ? (c.matchedNice||[]).length :
+                    dim.key === 'yearsExp' ? (c.extracted ? c.extracted.yearsExp : 0) :
+                    (typeof c[dim.key] === 'number' ? c[dim.key] : 0);
+                if (v > maxVal) { maxVal = v; winnerIdx = i; }
+            });
+        }
+
+        cands.forEach(function(c, i) {
+            var val = dim.format(c);
+            var cls = i === winnerIdx ? ' class="compare-winner"' : '';
+            html += '<td' + cls + '>' + esc(String(val)) + (i === winnerIdx && dim.higher ? ' <i class="fas fa-crown" style="color:var(--vg);font-size:10px"></i>' : '') + '</td>';
+        });
+        html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    // Recommendation
+    var best = cands.slice().sort(function(a, b) { return (b.composite||0) - (a.composite||0); })[0];
+    html += '<div class="panel" style="border-color:var(--vg)">' +
+        '<h3><i class="fas fa-trophy"></i> Recommendation</h3>' +
+        '<p style="font-size:14px"><strong style="color:var(--vg)">' + esc(best.name) + '</strong> leads with a composite score of <strong>' + best.composite + '/60</strong>. ' +
+        'Cold Call: ' + best.coldCall + '/10, Tech BG: ' + best.techBG + '/10, Stability: ' + best.stability + '/10.</p>' +
+        '</div>';
+
+    document.getElementById('compare-output').innerHTML = html;
 }
 
 // ══════════════════════════════════════════════
