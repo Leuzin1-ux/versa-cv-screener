@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Screener | Versa Networks HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- PDF.js for reading PDFs in browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Mammoth.js for reading .docx in browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        :root {
+            --vg: #00C853; --va: #00E676;
+            --vd: #0A1628; --vn: #132039; --vc: #1A2A44;
+            --vb: #243553; --vt: #E8ECF1; --vm: #8899B0;
+            --red: #FF5252; --amber: #FFB300; --green: #00E676; --blue: #448AFF;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'IBM Plex Sans',-apple-system,sans-serif; background:var(--vd); color:var(--vt); min-height:100vh; }
+
+        /* ── Nav ── */
+        .top-nav { display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:56px; background:var(--vn); border-bottom:1px solid var(--vb); position:sticky; top:0; z-index:100; }
+        .nav-left { display:flex; align-items:center; gap:12px; }
+        .logo-text { font-weight:700; font-size:16px; color:var(--vt); text-decoration:none; }
+        .logo-text span { color:var(--vg); }
+        .nav-divider { width:1px; height:24px; background:var(--vb); }
+        .app-title { font-weight:600; font-size:15px; color:var(--vm); }
+        .app-title em { color:var(--vg); font-style:normal; }
+        .nav-right { display:flex; align-items:center; gap:12px; }
+        .badge { font-size:11px; padding:3px 10px; border-radius:10px; font-weight:600; }
+        .badge-hr { background:rgba(68,138,255,.12); color:var(--blue); }
+        .badge-v { background:rgba(0,200,83,.12); color:var(--vg); }
+
+        /* ── Tabs ── */
+        .tab-bar { display:flex; background:var(--vn); border-bottom:1px solid var(--vb); padding:0 24px; }
+        .tab-btn { padding:14px 24px; font-size:14px; font-weight:600; color:var(--vm); background:none; border:none; border-bottom:3px solid transparent; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:8px; transition:all .2s; }
+        .tab-btn:hover { color:var(--vt); }
+        .tab-btn.active { color:var(--vg); border-bottom-color:var(--vg); }
+        .tab-btn .count { font-size:11px; padding:1px 7px; border-radius:10px; background:var(--vb); color:var(--vm); }
+        .tab-btn.active .count { background:rgba(0,200,83,.15); color:var(--vg); }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+
+        /* ── Container ── */
+        .container { max-width:1440px; margin:0 auto; padding:24px; }
+
+        /* ── Cards / Panels ── */
+        .panel { background:var(--vn); border:1px solid var(--vb); border-radius:12px; padding:24px; margin-bottom:20px; }
+        .panel h3 { font-size:16px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+        .panel h3 i { color:var(--vg); }
+
+        /* ── Forms ── */
+        .fg { margin-bottom:14px; }
+        .fg label { display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--vm); margin-bottom:5px; }
+        .fg input, .fg select, .fg textarea {
+            width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--vb);
+            background:var(--vd); color:var(--vt); font-family:inherit; font-size:14px; transition:border-color .2s;
+        }
+        .fg textarea { resize:vertical; min-height:80px; }
+        .fg input:focus, .fg select:focus, .fg textarea:focus { outline:none; border-color:var(--vg); box-shadow:0 0 0 3px rgba(0,200,83,.15); }
+
+        .row { display:flex; gap:12px; }
+        .row > * { flex:1; }
+
+        /* ── Tags input ── */
+        .tags-container { display:flex; flex-wrap:wrap; gap:6px; padding:8px 10px; border-radius:8px; border:1px solid var(--vb); background:var(--vd); min-height:42px; cursor:text; }
+        .tags-container:focus-within { border-color:var(--vg); box-shadow:0 0 0 3px rgba(0,200,83,.15); }
+        .tag { display:flex; align-items:center; gap:4px; padding:3px 10px; border-radius:14px; background:rgba(0,200,83,.12); color:var(--vg); font-size:12px; font-weight:600; }
+        .tag .tag-x { cursor:pointer; opacity:.7; }
+        .tag .tag-x:hover { opacity:1; }
+        .tags-input { border:none; outline:none; background:transparent; color:var(--vt); font-family:inherit; font-size:13px; min-width:80px; flex:1; }
+
+        /* ── Buttons ── */
+        .btn { padding:10px 18px; border:none; border-radius:8px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:all .2s; }
+        .btn-p { background:var(--vg); color:var(--vd); }
+        .btn-p:hover { background:var(--va); transform:translateY(-1px); }
+        .btn-s { background:transparent; border:1px solid var(--vb); color:var(--vm); }
+        .btn-s:hover { border-color:var(--vg); color:var(--vt); }
+        .btn-d { background:transparent; border:1px solid rgba(255,82,82,.3); color:var(--red); }
+        .btn-d:hover { background:rgba(255,82,82,.1); }
+        .btn-sm { padding:6px 12px; font-size:12px; }
+        .btn-row { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+
+        /* ── Job Req Cards ── */
+        .req-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:16px; }
+        .req-card { background:var(--vc); border:1px solid var(--vb); border-radius:10px; padding:18px; position:relative; transition:border-color .2s; cursor:pointer; }
+        .req-card:hover { border-color:var(--vg); }
+        .req-card.selected { border-color:var(--vg); box-shadow:0 0 0 2px rgba(0,200,83,.25); }
+        .req-card h4 { font-size:15px; font-weight:700; margin-bottom:4px; padding-right:60px; }
+        .req-card .req-territory { font-size:12px; color:var(--vg); font-weight:600; margin-bottom:8px; }
+        .req-card .req-detail { font-size:12px; color:var(--vm); margin-bottom:3px; }
+        .req-card .req-actions { position:absolute; top:14px; right:14px; display:flex; gap:6px; }
+        .req-card .req-actions button { background:none; border:none; color:var(--vm); cursor:pointer; font-size:13px; padding:4px; transition:color .2s; }
+        .req-card .req-actions button:hover { color:var(--vg); }
+        .req-card .req-actions button.del:hover { color:var(--red); }
+
+        /* ── Upload Zone ── */
+        .upload-zone {
+            border:2px dashed var(--vb); border-radius:12px; padding:40px; text-align:center;
+            transition:all .2s; cursor:pointer; margin-bottom:20px;
+        }
+        .upload-zone:hover, .upload-zone.dragover { border-color:var(--vg); background:rgba(0,200,83,.04); }
+        .upload-zone i { font-size:40px; color:var(--vb); margin-bottom:12px; }
+        .upload-zone h3 { font-size:16px; color:var(--vm); margin-bottom:6px; }
+        .upload-zone p { font-size:13px; color:var(--vb); }
+        .upload-zone.dragover i { color:var(--vg); }
+
+        /* ── File list ── */
+        .file-item { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--vc); border-radius:8px; margin-bottom:8px; font-size:13px; }
+        .file-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+        .file-icon.pdf { background:rgba(255,82,82,.12); color:var(--red); }
+        .file-icon.docx { background:rgba(68,138,255,.12); color:var(--blue); }
+        .file-info { flex:1; min-width:0; }
+        .file-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .file-meta { font-size:11px; color:var(--vm); }
+        .file-status { font-size:12px; font-weight:600; }
+        .file-status.parsed { color:var(--green); }
+        .file-status.parsing { color:var(--amber); }
+        .file-status.error { color:var(--red); }
+        .file-remove { background:none; border:none; color:var(--vm); cursor:pointer; font-size:14px; padding:4px; }
+        .file-remove:hover { color:var(--red); }
+
+        /* ── Progress bar ── */
+        .progress-bar { width:100%; height:4px; background:var(--vb); border-radius:2px; overflow:hidden; margin-top:6px; }
+        .progress-fill { height:100%; background:var(--vg); border-radius:2px; transition:width .3s; }
+
+        /* ── Candidate Result Card ── */
+        .cand-card { background:var(--vn); border:1px solid var(--vb); border-radius:12px; padding:20px; margin-bottom:16px; position:relative; transition:border-color .2s; }
+        .cand-card:hover { border-color:var(--vg); }
+        .cand-card.v-pass { border-left:4px solid var(--green); }
+        .cand-card.v-warn { border-left:4px solid var(--amber); }
+        .cand-card.v-fail { border-left:4px solid var(--red); }
+        .cand-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+        .cand-name { font-size:18px; font-weight:700; }
+        .cand-sub { font-size:13px; color:var(--vm); margin-top:2px; }
+        .cand-verdict { padding:4px 14px; border-radius:20px; font-size:13px; font-weight:700; white-space:nowrap; }
+        .v-pass .cand-verdict { background:rgba(0,230,118,.12); color:var(--green); }
+        .v-warn .cand-verdict { background:rgba(255,179,0,.12); color:var(--amber); }
+        .v-fail .cand-verdict { background:rgba(255,82,82,.12); color:var(--red); }
+        .cand-reason { font-size:14px; color:var(--vm); margin-bottom:14px; font-style:italic; }
+
+        .score-bar { display:flex; gap:12px; margin-bottom:14px; }
+        .score-item { flex:1; text-align:center; }
+        .score-lbl { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--vm); margin-bottom:6px; }
+        .score-ring { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; margin:0 auto; position:relative; }
+        .score-ring::before { content:''; position:absolute; inset:0; border-radius:50%; border:3px solid var(--vb); }
+        .score-ring.hi::before { border-color:var(--green); } .score-ring.hi { color:var(--green); }
+        .score-ring.md::before { border-color:var(--amber); } .score-ring.md { color:var(--amber); }
+        .score-ring.lo::before { border-color:var(--red); } .score-ring.lo { color:var(--red); }
+
+        .cand-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .meta-box { padding:10px 14px; background:var(--vd); border-radius:8px; }
+        .meta-lbl { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--vm); margin-bottom:4px; }
+        .meta-val { font-size:13px; }
+        .meta-val.clean { color:var(--green); }
+        .meta-val.issue { color:var(--red); }
+        .meta-val.flag { color:var(--amber); }
+        .meta-val.none { color:var(--vm); }
+
+        .cand-keywords { margin-top:10px; display:flex; flex-wrap:wrap; gap:4px; }
+        .kw-match { font-size:11px; padding:2px 8px; border-radius:10px; background:rgba(0,200,83,.1); color:var(--vg); }
+        .kw-miss { font-size:11px; padding:2px 8px; border-radius:10px; background:rgba(255,82,82,.1); color:var(--red); }
+
+        .cand-del { position:absolute; top:12px; right:12px; background:none; border:none; color:var(--vb); cursor:pointer; font-size:14px; padding:4px; }
+        .cand-del:hover { color:var(--red); }
+
+        /* ── DQ Strip ── */
+        .dq-strip { background:rgba(255,82,82,.06); border:1px solid rgba(255,82,82,.2); border-radius:8px; padding:10px 16px; font-size:13px; color:var(--red); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+        .dq-strip .dq-name { font-weight:700; color:var(--vt); min-width:120px; }
+
+        /* ── Shortlist ── */
+        .shortlist { margin-top:28px; padding:24px; background:var(--vn); border:2px solid var(--vg); border-radius:12px; }
+        .shortlist h3 { font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+        .shortlist h3 i { color:var(--vg); }
+        .sl-item { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid var(--vb); font-size:14px; }
+        .sl-item:last-child { border-bottom:none; }
+        .sl-rank { width:28px; height:28px; border-radius:50%; background:var(--vg); color:var(--vd); font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .sl-name { font-weight:600; min-width:140px; }
+        .sl-probe { color:var(--vm); }
+
+        /* ── Stats ── */
+        .stats-bar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+        .stat-chip { padding:8px 16px; border-radius:8px; background:var(--vn); border:1px solid var(--vb); font-size:13px; font-weight:600; }
+        .stat-chip .sn { font-size:18px; margin-right:6px; }
+        .stat-chip.sp .sn { color:var(--green); }
+        .stat-chip.sw .sn { color:var(--amber); }
+        .stat-chip.sf .sn { color:var(--red); }
+
+        /* ── Empty ── */
+        .empty { text-align:center; padding:60px 40px; border:1px dashed var(--vb); border-radius:12px; }
+        .empty i { font-size:44px; color:var(--vb); margin-bottom:14px; }
+        .empty h3 { font-size:16px; color:var(--vm); margin-bottom:6px; }
+        .empty p { font-size:13px; color:var(--vb); }
+
+        /* ── Modal ── */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(10,22,40,.85); z-index:200; align-items:center; justify-content:center; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:var(--vn); border:1px solid var(--vb); border-radius:16px; padding:28px; width:90%; max-width:640px; max-height:90vh; overflow-y:auto; }
+        .modal h3 { font-size:18px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+        .modal h3 i { color:var(--vg); }
+
+        /* ── CV Preview ── */
+        .cv-preview { max-height:300px; overflow-y:auto; padding:14px; background:var(--vd); border-radius:8px; font-size:12px; color:var(--vm); white-space:pre-wrap; word-wrap:break-word; line-height:1.5; margin-top:10px; border:1px solid var(--vb); }
+
+        /* ── Responsive ── */
+        @media (max-width:768px) {
+            .req-grid { grid-template-columns:1fr; }
+            .score-bar { flex-wrap:wrap; }
+            .cand-meta { grid-template-columns:1fr; }
+            .container { padding:12px; }
+            .row { flex-direction:column; }
+            .tab-btn { padding:12px 14px; font-size:13px; }
+        }
+
+        /* ── Print ── */
+        @media print {
+            body { background:#fff; color:#111; }
+            .top-nav,.tab-bar,.upload-zone,.btn-row,.cand-del,.req-actions { display:none !important; }
+            .cand-card,.panel { break-inside:avoid; border:1px solid #ccc; background:#f9f9f9; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="top-nav">
+    <div class="nav-left">
+        <a href="#" class="logo-text">VERSA<span>NETWORKS</span></a>
+        <div class="nav-divider"></div>
+        <span class="app-title">CV <em>Screener</em></span>
+    </div>
+    <div class="nav-right">
+        <span class="badge badge-hr">HR Tool</span>
+        <span class="badge badge-v">v2.0</span>
+    </div>
+</nav>
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('reqs')"><i class="fas fa-briefcase"></i> Job Reqs <span class="count" id="req-count">0</span></button>
+    <button class="tab-btn" onclick="switchTab('screen')"><i class="fas fa-file-upload"></i> Screen CVs</button>
+    <button class="tab-btn" onclick="switchTab('results')"><i class="fas fa-poll"></i> Results <span class="count" id="res-count">0</span></button>
+</div>
+
+<!-- ═══════════ TAB 1: JOB REQS ═══════════ -->
+<div class="tab-content active" id="tab-reqs">
+<div class="container">
+    <div class="panel">
+        <h3><i class="fas fa-plus-circle"></i> <span id="req-form-title">Create Job Requisition</span></h3>
+        <input type="hidden" id="req-edit-id" value="">
+
+        <div class="row">
+            <div class="fg"><label>Job Title *</label><input type="text" id="rq-title" placeholder="e.g. Outbound SDR"></div>
+            <div class="fg"><label>Territory *</label><input type="text" id="rq-territory" placeholder="e.g. US West, EMEA, DACH"></div>
+        </div>
+        <div class="row">
+            <div class="fg"><label>Role Type</label>
+                <select id="rq-type">
+                    <option value="outbound-sdr">Outbound SDR</option>
+                    <option value="outbound-bdr">Outbound BDR</option>
+                    <option value="ae">Account Executive</option>
+                    <option value="se">Sales Engineer</option>
+                    <option value="csm">Customer Success</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="fg"><label>Language Requirement</label><input type="text" id="rq-lang" placeholder="e.g. German fluent (optional)"></div>
+        </div>
+
+        <div class="fg">
+            <label>Required Keywords (press Enter to add)</label>
+            <div class="tags-container" id="rq-keywords-box" onclick="document.getElementById('rq-keywords-input').focus()">
+                <input type="text" class="tags-input" id="rq-keywords-input" placeholder="e.g. SDR, cold calling, SASE, SD-WAN...">
+            </div>
+        </div>
+
+        <div class="fg">
+            <label>Hard Disqualifiers (press Enter to add)</label>
+            <div class="tags-container" id="rq-dq-box" onclick="document.getElementById('rq-dq-input').focus()">
+                <input type="text" class="tags-input" id="rq-dq-input" placeholder="e.g. retail, e-commerce, inbound only...">
+            </div>
+        </div>
+
+        <div class="fg">
+            <label>Nice-to-Have Keywords (press Enter to add)</label>
+            <div class="tags-container" id="rq-nice-box" onclick="document.getElementById('rq-nice-input').focus()">
+                <input type="text" class="tags-input" id="rq-nice-input" placeholder="e.g. Salesforce, ZoomInfo, MEDDIC...">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="fg"><label>Min. Experience (months)</label><input type="number" id="rq-min-months" value="6" min="0"></div>
+            <div class="fg"><label>Max Short Stints (&lt;6mo)</label><input type="number" id="rq-max-stints" value="2" min="0"></div>
+        </div>
+
+        <div class="fg"><label>Additional Notes</label><textarea id="rq-notes" placeholder="Any extra context for screening..."></textarea></div>
+
+        <div class="btn-row">
+            <button class="btn btn-p" onclick="saveReq()"><i class="fas fa-save"></i> Save Requisition</button>
+            <button class="btn btn-s" onclick="resetReqForm()"><i class="fas fa-undo"></i> Clear</button>
+        </div>
+    </div>
+
+    <h3 style="font-size:16px;margin-bottom:14px"><i class="fas fa-list" style="color:var(--vg);margin-right:6px"></i> Your Job Requisitions</h3>
+    <div id="reqs-list"></div>
+</div>
+</div>
+
+<!-- ═══════════ TAB 2: SCREEN CVs ═══════════ -->
+<div class="tab-content" id="tab-screen">
+<div class="container">
+    <!-- Select Req -->
+    <div class="panel">
+        <h3><i class="fas fa-briefcase"></i> Select Job Requisition to Screen Against</h3>
+        <div id="req-selector"></div>
+    </div>
+
+    <!-- Upload -->
+    <div class="upload-zone" id="upload-zone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <h3>Drop CV files here or click to browse</h3>
+        <p>Supports PDF and Word (.docx) files &mdash; upload multiple at once</p>
+        <input type="file" id="file-input" multiple accept=".pdf,.docx" style="display:none">
+    </div>
+
+    <!-- File List -->
+    <div id="file-list"></div>
+
+    <!-- Screen Button -->
+    <div class="btn-row" id="screen-actions" style="display:none">
+        <button class="btn btn-p" onclick="screenAllCVs()"><i class="fas fa-bolt"></i> Screen All CVs</button>
+        <button class="btn btn-s" onclick="clearFiles()"><i class="fas fa-trash"></i> Clear Files</button>
+    </div>
+
+    <!-- Processing Progress -->
+    <div class="panel" id="processing-panel" style="display:none">
+        <h3><i class="fas fa-cog fa-spin"></i> Processing...</h3>
+        <div id="processing-status"></div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+</div>
+</div>
+
+<!-- ═══════════ TAB 3: RESULTS ═══════════ -->
+<div class="tab-content" id="tab-results">
+<div class="container">
+    <div class="btn-row" id="results-export" style="display:none;margin-bottom:16px;justify-content:flex-end">
+        <button class="btn btn-s btn-sm" onclick="exportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+        <button class="btn btn-s btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+        <button class="btn btn-s btn-sm" onclick="copyShortlist()"><i class="fas fa-clipboard"></i> Copy Shortlist</button>
+        <button class="btn btn-d btn-sm" onclick="clearResults()"><i class="fas fa-trash"></i> Clear</button>
+    </div>
+
+    <div class="stats-bar" id="stats-bar" style="display:none"></div>
+    <div id="results-container"></div>
+    <div id="dq-container"></div>
+    <div id="shortlist-container"></div>
+
+    <div class="empty" id="results-empty">
+        <i class="fas fa-inbox"></i>
+        <h3>No screening results yet</h3>
+        <p>Upload CVs and screen them against a job requisition to see results here</p>
+    </div>
+</div>
+</div>
+
+<!-- ═══════════ CV PREVIEW MODAL ═══════════ -->
+<div class="modal-overlay" id="cv-modal">
+    <div class="modal">
+        <h3><i class="fas fa-file-alt"></i> <span id="cv-modal-title">CV Preview</span></h3>
+        <div class="cv-preview" id="cv-modal-text"></div>
+        <div class="btn-row">
+            <button class="btn btn-s" onclick="closeCvModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+var jobReqs = JSON.parse(localStorage.getItem('versa-screener-reqs') || '[]');
+var screenResults = JSON.parse(localStorage.getItem('versa-screener-results') || '[]');
+var uploadedFiles = []; // { name, size, type, text, status }
+var selectedReqId = null;
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('tab-' + id).classList.add('active');
+    document.querySelector('[onclick="switchTab(\'' + id + '\')"]').classList.add('active');
+    if (id === 'screen') renderReqSelector();
+    if (id === 'results') renderResults();
+}
+
+// ══════════════════════════════════════════════
+//  TAGS INPUT
+// ══════════════════════════════════════════════
+function setupTags(inputId, boxId) {
+    var input = document.getElementById(inputId);
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && this.value.trim()) {
+            e.preventDefault();
+            addTag(boxId, this.value.trim());
+            this.value = '';
+        }
+    });
+}
+
+function addTag(boxId, text) {
+    var box = document.getElementById(boxId);
+    var input = box.querySelector('.tags-input');
+    var tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = esc(text) + ' <span class="tag-x" onclick="this.parentElement.remove()">&times;</span>';
+    tag.dataset.value = text;
+    box.insertBefore(tag, input);
+}
+
+function getTags(boxId) {
+    return Array.from(document.querySelectorAll('#' + boxId + ' .tag')).map(function(t) { return t.dataset.value; });
+}
+
+function clearTags(boxId) {
+    document.querySelectorAll('#' + boxId + ' .tag').forEach(function(t) { t.remove(); });
+}
+
+setupTags('rq-keywords-input', 'rq-keywords-box');
+setupTags('rq-dq-input', 'rq-dq-box');
+setupTags('rq-nice-input', 'rq-nice-box');
+
+// ══════════════════════════════════════════════
+//  JOB REQS CRUD
+// ══════════════════════════════════════════════
+function saveReq() {
+    var title = document.getElementById('rq-title').value.trim();
+    var territory = document.getElementById('rq-territory').value.trim();
+    if (!title || !territory) { alert('Job Title and Territory are required'); return; }
+
+    var req = {
+        id: document.getElementById('req-edit-id').value || String(Date.now()),
+        title: title,
+        territory: territory,
+        type: document.getElementById('rq-type').value,
+        language: document.getElementById('rq-lang').value.trim(),
+        keywords: getTags('rq-keywords-box'),
+        disqualifiers: getTags('rq-dq-box'),
+        niceToHave: getTags('rq-nice-box'),
+        minMonths: parseInt(document.getElementById('rq-min-months').value) || 6,
+        maxStints: parseInt(document.getElementById('rq-max-stints').value) || 2,
+        notes: document.getElementById('rq-notes').value.trim(),
+        created: new Date().toISOString()
+    };
+
+    var existingIdx = jobReqs.findIndex(function(r) { return r.id === req.id; });
+    if (existingIdx >= 0) jobReqs[existingIdx] = req;
+    else jobReqs.push(req);
+
+    persistReqs();
+    renderReqs();
+    resetReqForm();
+}
+
+function editReq(id) {
+    var r = jobReqs.find(function(x) { return x.id === id; });
+    if (!r) return;
+    document.getElementById('req-edit-id').value = r.id;
+    document.getElementById('req-form-title').textContent = 'Edit Job Requisition';
+    document.getElementById('rq-title').value = r.title;
+    document.getElementById('rq-territory').value = r.territory;
+    document.getElementById('rq-type').value = r.type;
+    document.getElementById('rq-lang').value = r.language || '';
+    document.getElementById('rq-min-months').value = r.minMonths;
+    document.getElementById('rq-max-stints').value = r.maxStints;
+    document.getElementById('rq-notes').value = r.notes || '';
+
+    clearTags('rq-keywords-box'); clearTags('rq-dq-box'); clearTags('rq-nice-box');
+    (r.keywords || []).forEach(function(k) { addTag('rq-keywords-box', k); });
+    (r.disqualifiers || []).forEach(function(k) { addTag('rq-dq-box', k); });
+    (r.niceToHave || []).forEach(function(k) { addTag('rq-nice-box', k); });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteReq(id) {
+    if (!confirm('Delete this requisition?')) return;
+    jobReqs = jobReqs.filter(function(r) { return r.id !== id; });
+    persistReqs();
+    renderReqs();
+}
+
+function resetReqForm() {
+    document.getElementById('req-edit-id').value = '';
+    document.getElementById('req-form-title').textContent = 'Create Job Requisition';
+    ['rq-title','rq-territory','rq-lang','rq-notes'].forEach(function(id) { document.getElementById(id).value = ''; });
+    document.getElementById('rq-type').value = 'outbound-sdr';
+    document.getElementById('rq-min-months').value = 6;
+    document.getElementById('rq-max-stints').value = 2;
+    clearTags('rq-keywords-box'); clearTags('rq-dq-box'); clearTags('rq-nice-box');
+}
+
+function persistReqs() {
+    localStorage.setItem('versa-screener-reqs', JSON.stringify(jobReqs));
+    document.getElementById('req-count').textContent = jobReqs.length;
+}
+
+function renderReqs() {
+    var el = document.getElementById('reqs-list');
+    if (jobReqs.length === 0) {
+        el.innerHTML = '<div class="empty"><i class="fas fa-briefcase"></i><h3>No job requisitions yet</h3><p>Create one above to start screening candidates</p></div>';
+        return;
+    }
+    el.innerHTML = '<div class="req-grid">' + jobReqs.map(function(r) {
+        var kwCount = (r.keywords || []).length;
+        var dqCount = (r.disqualifiers || []).length;
+        return '<div class="req-card" data-id="' + r.id + '">' +
+            '<div class="req-actions">' +
+            '<button onclick="event.stopPropagation();editReq(\'' + r.id + '\')" title="Edit"><i class="fas fa-pen"></i></button>' +
+            '<button class="del" onclick="event.stopPropagation();deleteReq(\'' + r.id + '\')" title="Delete"><i class="fas fa-trash"></i></button>' +
+            '</div>' +
+            '<h4>' + esc(r.title) + '</h4>' +
+            '<div class="req-territory"><i class="fas fa-map-marker-alt"></i> ' + esc(r.territory) + '</div>' +
+            '<div class="req-detail"><strong>Type:</strong> ' + esc(r.type) + (r.language ? ' &bull; <strong>Lang:</strong> ' + esc(r.language) : '') + '</div>' +
+            '<div class="req-detail"><strong>Keywords:</strong> ' + kwCount + ' required &bull; <strong>DQs:</strong> ' + dqCount + ' disqualifiers</div>' +
+            '<div class="req-detail"><strong>Min exp:</strong> ' + r.minMonths + ' months &bull; <strong>Max stints:</strong> ' + r.maxStints + '</div>' +
+            '</div>';
+    }).join('') + '</div>';
+    document.getElementById('req-count').textContent = jobReqs.length;
+}
+
+// ══════════════════════════════════════════════
+//  REQ SELECTOR (Screen tab)
+// ══════════════════════════════════════════════
+function renderReqSelector() {
+    var el = document.getElementById('req-selector');
+    if (jobReqs.length === 0) {
+        el.innerHTML = '<p style="color:var(--vm);font-size:14px"><i class="fas fa-exclamation-triangle" style="color:var(--amber)"></i> No job requisitions created yet. Go to the <strong>Job Reqs</strong> tab first.</p>';
+        return;
+    }
+    el.innerHTML = '<div class="req-grid">' + jobReqs.map(function(r) {
+        var sel = selectedReqId === r.id ? ' selected' : '';
+        return '<div class="req-card' + sel + '" onclick="selectReq(\'' + r.id + '\')">' +
+            '<h4>' + (selectedReqId === r.id ? '<i class="fas fa-check-circle" style="color:var(--vg);margin-right:6px"></i>' : '') + esc(r.title) + '</h4>' +
+            '<div class="req-territory"><i class="fas fa-map-marker-alt"></i> ' + esc(r.territory) + '</div>' +
+            '<div class="req-detail">' + esc(r.type) + (r.language ? ' &bull; ' + esc(r.language) : '') + '</div>' +
+            '</div>';
+    }).join('') + '</div>';
+}
+
+function selectReq(id) {
+    selectedReqId = id;
+    renderReqSelector();
+}
+
+// ══════════════════════════════════════════════
+//  FILE UPLOAD & PARSING
+// ══════════════════════════════════════════════
+var uploadZone = document.getElementById('upload-zone');
+var fileInput = document.getElementById('file-input');
+
+uploadZone.addEventListener('click', function() { fileInput.click(); });
+uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', function() { this.classList.remove('dragover'); });
+uploadZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', function() { handleFiles(this.files); this.value = ''; });
+
+function handleFiles(files) {
+    Array.from(files).forEach(function(f) {
+        if (!f.name.match(/\.(pdf|docx)$/i)) return;
+        if (uploadedFiles.some(function(u) { return u.name === f.name; })) return;
+        var entry = { name: f.name, size: f.size, type: f.name.endsWith('.pdf') ? 'pdf' : 'docx', file: f, text: '', status: 'pending' };
+        uploadedFiles.push(entry);
+        parseFile(entry);
+    });
+    renderFileList();
+}
+
+function parseFile(entry) {
+    entry.status = 'parsing';
+    renderFileList();
+
+    if (entry.type === 'pdf') {
+        var reader = new FileReader();
+        reader.onload = function() {
+            var typedArray = new Uint8Array(this.result);
+            pdfjsLib.getDocument(typedArray).promise.then(function(pdf) {
+                var pages = [];
+                var total = pdf.numPages;
+                function getPage(n) {
+                    if (n > total) {
+                        entry.text = pages.join('\n');
+                        entry.status = 'parsed';
+                        renderFileList();
+                        return;
+                    }
+                    pdf.getPage(n).then(function(page) {
+                        page.getTextContent().then(function(content) {
+                            pages.push(content.items.map(function(i) { return i.str; }).join(' '));
+                            getPage(n + 1);
+                        });
+                    });
+                }
+                getPage(1);
+            }).catch(function(err) {
+                entry.status = 'error';
+                entry.text = 'Error parsing PDF: ' + err.message;
+                renderFileList();
+            });
+        };
+        reader.readAsArrayBuffer(entry.file);
+    } else {
+        var reader = new FileReader();
+        reader.onload = function() {
+            mammoth.extractRawText({ arrayBuffer: this.result }).then(function(result) {
+                entry.text = result.value;
+                entry.status = 'parsed';
+                renderFileList();
+            }).catch(function(err) {
+                entry.status = 'error';
+                entry.text = 'Error parsing DOCX: ' + err.message;
+                renderFileList();
+            });
+        };
+        reader.readAsArrayBuffer(entry.file);
+    }
+}
+
+function renderFileList() {
+    var el = document.getElementById('file-list');
+    var actions = document.getElementById('screen-actions');
+
+    if (uploadedFiles.length === 0) {
+        el.innerHTML = '';
+        actions.style.display = 'none';
+        return;
+    }
+    actions.style.display = 'flex';
+
+    el.innerHTML = uploadedFiles.map(function(f, i) {
+        var statusText = f.status === 'parsed' ? 'Ready' : f.status === 'parsing' ? 'Parsing...' : f.status === 'error' ? 'Error' : 'Pending';
+        var sizeKB = (f.size / 1024).toFixed(1);
+        return '<div class="file-item">' +
+            '<div class="file-icon ' + f.type + '"><i class="fas fa-file-' + (f.type === 'pdf' ? 'pdf' : 'word') + '"></i></div>' +
+            '<div class="file-info"><div class="file-name">' + esc(f.name) + '</div>' +
+            '<div class="file-meta">' + sizeKB + ' KB &bull; ' + f.type.toUpperCase() + '</div></div>' +
+            '<span class="file-status ' + f.status + '">' + statusText + '</span>' +
+            (f.status === 'parsed' ? '<button class="btn btn-s btn-sm" onclick="previewCV(' + i + ')"><i class="fas fa-eye"></i></button>' : '') +
+            '<button class="file-remove" onclick="removeFile(' + i + ')"><i class="fas fa-times"></i></button>' +
+            '</div>';
+    }).join('');
+}
+
+function removeFile(idx) {
+    uploadedFiles.splice(idx, 1);
+    renderFileList();
+}
+
+function clearFiles() {
+    uploadedFiles = [];
+    renderFileList();
+}
+
+function previewCV(idx) {
+    var f = uploadedFiles[idx];
+    document.getElementById('cv-modal-title').textContent = f.name;
+    document.getElementById('cv-modal-text').textContent = f.text || '(no text extracted)';
+    document.getElementById('cv-modal').classList.add('active');
+}
+
+function closeCvModal() { document.getElementById('cv-modal').classList.remove('active'); }
+
+// ══════════════════════════════════════════════
+//  SCREENING ENGINE
+// ══════════════════════════════════════════════
+function screenAllCVs() {
+    if (!selectedReqId) { alert('Please select a job requisition first'); return; }
+    var req = jobReqs.find(function(r) { return r.id === selectedReqId; });
+    if (!req) { alert('Selected requisition not found'); return; }
+
+    var readyFiles = uploadedFiles.filter(function(f) { return f.status === 'parsed'; });
+    if (readyFiles.length === 0) { alert('No parsed CVs ready. Wait for parsing to complete.'); return; }
+
+    document.getElementById('processing-panel').style.display = 'block';
+    var total = readyFiles.length;
+    var processed = 0;
+
+    readyFiles.forEach(function(f, idx) {
+        setTimeout(function() {
+            var result = analyzeCV(f, req);
+            screenResults.push(result);
+            processed++;
+            document.getElementById('progress-fill').style.width = Math.round((processed / total) * 100) + '%';
+            document.getElementById('processing-status').textContent = 'Screened ' + processed + ' of ' + total + ' CVs...';
+
+            if (processed === total) {
+                persistResults();
+                setTimeout(function() {
+                    document.getElementById('processing-panel').style.display = 'none';
+                    document.getElementById('progress-fill').style.width = '0%';
+                    switchTab('results');
+                }, 500);
+            }
+        }, idx * 100);
+    });
+}
+
+function analyzeCV(file, req) {
+    var text = file.text.toLowerCase();
+    var textOriginal = file.text;
+
+    // Extract candidate name (best guess: first line or first capitalized words)
+    var nameGuess = extractName(textOriginal);
+
+    // Extract title guess
+    var titleGuess = extractTitle(textOriginal);
+
+    // ── Keyword matching ──
+    var reqKw = (req.keywords || []);
+    var matchedKw = [];
+    var missedKw = [];
+    reqKw.forEach(function(kw) {
+        if (text.indexOf(kw.toLowerCase()) !== -1) matchedKw.push(kw);
+        else missedKw.push(kw);
+    });
+
+    var niceKw = (req.niceToHave || []);
+    var matchedNice = [];
+    niceKw.forEach(function(kw) {
+        if (text.indexOf(kw.toLowerCase()) !== -1) matchedNice.push(kw);
+    });
+
+    // ── Hard disqualifiers check ──
+    var dqTerms = (req.disqualifiers || []);
+    var foundDq = [];
+    dqTerms.forEach(function(dq) {
+        if (text.indexOf(dq.toLowerCase()) !== -1) foundDq.push(dq);
+    });
+
+    // ── Cold Call Score ──
+    var coldCallScore = 0;
+    var coldCallTerms = ['cold call', 'cold-call', 'outbound call', 'prospecting', 'pipeline generation', 'pipeline gen',
+        'dials', 'daily dials', 'connect rate', 'booking rate', 'outbound prospect', 'phone prospect',
+        'sdr', 'bdr', 'outbound sdr', 'outbound bdr', 'sales development', 'business development representative',
+        'high-volume', 'high volume', '100+ calls', '150+ calls', '200+ calls', 'cold outreach', 'cold email',
+        'sequence', 'cadence', 'salesloft', 'outreach.io', 'outreach io', 'apollo', 'orum', 'nooks'];
+    coldCallTerms.forEach(function(term) {
+        if (text.indexOf(term) !== -1) coldCallScore++;
+    });
+    coldCallScore = Math.min(10, Math.round(coldCallScore * 1.2));
+
+    // ── Tech Background Score ──
+    var techScore = 0;
+    var techTerms = ['cybersecurity', 'cyber security', 'networking', 'network security', 'sd-wan', 'sdwan', 'sd wan',
+        'sase', 'sse', 'zero trust', 'ztna', 'firewall', 'vpn', 'mpls', 'wan', 'lan',
+        'cloud security', 'saas', 'iaas', 'paas', 'aws', 'azure', 'gcp',
+        'palo alto', 'fortinet', 'zscaler', 'cisco', 'juniper', 'aruba', 'vmware', 'velocloud',
+        'cato networks', 'netskope', 'cloudflare', 'prisma', 'crowdstrike', 'sentinel',
+        'endpoint', 'siem', 'soar', 'edr', 'xdr', 'mdr', 'ndr',
+        'it infrastructure', 'it infra', 'enterprise security', 'information security',
+        'tcp/ip', 'dns', 'dhcp', 'routing', 'switching', 'load balancer', 'proxy'];
+    techTerms.forEach(function(term) {
+        if (text.indexOf(term) !== -1) techScore++;
+    });
+    techScore = Math.min(10, Math.round(techScore * 0.8));
+
+    // ── Stability Score ──
+    var stabilityScore = 7; // default
+    var yearPattern = /\b(20\d{2})\b/g;
+    var years = [];
+    var m;
+    while ((m = yearPattern.exec(text)) !== null) years.push(parseInt(m[1]));
+
+    var shortStintIndicators = 0;
+    var monthTerms = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
+        'january', 'february', 'march', 'april', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    // Count number of distinct roles by counting date ranges
+    var dateRanges = text.match(/(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{4}\s*[-–—to]+\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|present|current)[a-z]*\.?\s*\d{0,4}/gi) || [];
+    if (dateRanges.length > 5 && years.length > 0) {
+        var careerSpan = Math.max.apply(null, years) - Math.min.apply(null, years);
+        if (careerSpan > 0 && dateRanges.length / careerSpan > 1.5) {
+            shortStintIndicators = Math.round(dateRanges.length / careerSpan);
+            stabilityScore = Math.max(2, 10 - shortStintIndicators);
+        }
+    }
+
+    // CV integrity
+    var cvNotes = [];
+    if (dateRanges.length === 0) cvNotes.push('No clear date ranges found — verify timeline');
+    if (years.length > 0) {
+        var sortedYears = years.slice().sort();
+        for (var i = 1; i < sortedYears.length; i++) {
+            if (sortedYears[i] - sortedYears[i-1] > 2) cvNotes.push('Possible gap: ' + sortedYears[i-1] + '-' + sortedYears[i]);
+        }
+    }
+    if (text.indexOf('freelanc') !== -1 || text.indexOf('consult') !== -1) cvNotes.push('Freelance/consulting period detected');
+
+    // Red flags
+    var redFlags = [];
+    if (foundDq.length > 0) redFlags.push('Contains disqualifier terms: ' + foundDq.join(', '));
+    if (text.indexOf('intern') !== -1 && text.indexOf('international') === -1) redFlags.push('Internship found — check if only experience');
+    if (matchedKw.length === 0 && reqKw.length > 0) redFlags.push('Zero required keyword matches');
+    if (shortStintIndicators > req.maxStints) redFlags.push(shortStintIndicators + ' potential short stints detected');
+
+    // ── Experience check ──
+    var hasOutbound = text.indexOf('outbound') !== -1 || text.indexOf('cold call') !== -1 || text.indexOf('sdr') !== -1 || text.indexOf('bdr') !== -1;
+    var hasTech = techScore >= 2;
+
+    // ── Determine verdict ──
+    var disqualified = false;
+    var dqReason = '';
+
+    // DQ: explicit disqualifier terms found prominently
+    if (foundDq.length > 0 && matchedKw.length < 2) {
+        disqualified = true;
+        dqReason = 'Hard disqualifier detected: ' + foundDq.join(', ');
+    }
+
+    // DQ: no outbound evidence for SDR/BDR roles
+    if (!disqualified && (req.type === 'outbound-sdr' || req.type === 'outbound-bdr') && !hasOutbound && coldCallScore < 2) {
+        disqualified = true;
+        dqReason = 'No outbound SDR/BDR experience detected in CV';
+    }
+
+    // DQ: zero tech for tech sales roles
+    if (!disqualified && !hasTech && (req.type === 'outbound-sdr' || req.type === 'outbound-bdr' || req.type === 'se')) {
+        disqualified = true;
+        dqReason = 'Zero tech sales background detected';
+    }
+
+    // DQ: language
+    if (!disqualified && req.language) {
+        var reqLang = req.language.toLowerCase().split(',')[0].trim().split(' ')[0];
+        if (text.indexOf(reqLang) === -1) {
+            disqualified = true;
+            dqReason = 'Missing required language: ' + req.language;
+        }
+    }
+
+    var composite = (coldCallScore * 3) + (techScore * 2) + (stabilityScore * 1);
+    var verdict, verdictIcon, reason;
+
+    if (disqualified) {
+        verdict = 'FAIL'; verdictIcon = '\u274C'; reason = dqReason;
+    } else if (coldCallScore >= 7 && techScore >= 5 && stabilityScore >= 6) {
+        verdict = 'PASS'; verdictIcon = '\u2705';
+        if (coldCallScore >= 9 && techScore >= 7) reason = 'Elite cold caller with strong tech foundation — top-tier candidate';
+        else if (text.indexOf('cybersecurity') !== -1 || text.indexOf('networking') !== -1) reason = 'Proven outbound hunter with direct cybersec/networking background';
+        else reason = 'Solid outbound fundamentals with adequate tech context';
+    } else if (coldCallScore >= 4 && techScore >= 3 && stabilityScore >= 4) {
+        verdict = 'MAYBE'; verdictIcon = '\u26A0\uFE0F';
+        if (coldCallScore < 7) reason = 'Cold calling evidence borderline — needs proof of high-volume outbound';
+        else if (techScore < 5) reason = 'Tech background thin — may struggle with SASE/SD-WAN value props';
+        else reason = 'Stability concern — tenure pattern needs explanation';
+    } else {
+        verdict = 'FAIL'; verdictIcon = '\u274C';
+        var w = coldCallScore <= techScore && coldCallScore <= stabilityScore ? 'cold calling'
+            : techScore <= stabilityScore ? 'tech background' : 'stability';
+        reason = 'Below minimum bar — weakest: ' + w + ' (' + Math.min(coldCallScore, techScore, stabilityScore) + '/10)';
+    }
+
+    return {
+        id: Date.now() + Math.random(),
+        name: nameGuess,
+        title: titleGuess,
+        fileName: file.name,
+        reqId: req.id,
+        reqTitle: req.title,
+        reqTerritory: req.territory,
+        coldCall: coldCallScore,
+        techBG: techScore,
+        stability: stabilityScore,
+        composite: composite,
+        matchedKw: matchedKw,
+        missedKw: missedKw,
+        matchedNice: matchedNice,
+        cvNotes: cvNotes.length > 0 ? cvNotes.join('; ') : 'Clean',
+        redFlags: redFlags.length > 0 ? redFlags.join('; ') : 'None',
+        verdict: verdict,
+        verdictIcon: verdictIcon,
+        reason: reason,
+        disqualified: disqualified,
+        dqReason: dqReason,
+        cvText: file.text.substring(0, 2000) // store first 2000 chars for preview
+    };
+}
+
+function extractName(text) {
+    // Try first non-empty line that looks like a name (2-4 capitalized words)
+    var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+    for (var i = 0; i < Math.min(5, lines.length); i++) {
+        var line = lines[i].replace(/[^a-zA-Z\s\-'\.]/g, '').trim();
+        var words = line.split(/\s+/);
+        if (words.length >= 2 && words.length <= 5) {
+            var allCaps = words.every(function(w) { return w.length > 0 && w[0] === w[0].toUpperCase(); });
+            if (allCaps && line.length < 40) return line;
+        }
+    }
+    // Fallback: look for "name:" pattern
+    var nameMatch = text.match(/(?:name|full name)\s*[:\-]\s*(.+)/i);
+    if (nameMatch) return nameMatch[1].trim().substring(0, 40);
+    return lines[0] ? lines[0].substring(0, 40) : 'Unknown';
+}
+
+function extractTitle(text) {
+    var titlePatterns = [
+        /(?:title|position|role|designation)\s*[:\-]\s*(.+)/i,
+        /(?:outbound|inbound)?\s*(?:sdr|bdr|sales development|business development|account executive|sales engineer|customer success)/i
+    ];
+    for (var i = 0; i < titlePatterns.length; i++) {
+        var m = text.match(titlePatterns[i]);
+        if (m) return (m[1] || m[0]).trim().substring(0, 60);
+    }
+    return '';
+}
+
+// ══════════════════════════════════════════════
+//  RESULTS RENDERING
+// ══════════════════════════════════════════════
+function persistResults() {
+    localStorage.setItem('versa-screener-results', JSON.stringify(screenResults));
+    document.getElementById('res-count').textContent = screenResults.length;
+}
+
+function renderResults() {
+    var container = document.getElementById('results-container');
+    var dqCont = document.getElementById('dq-container');
+    var slCont = document.getElementById('shortlist-container');
+    var emptyEl = document.getElementById('results-empty');
+    var exportEl = document.getElementById('results-export');
+    var statsEl = document.getElementById('stats-bar');
+
+    document.getElementById('res-count').textContent = screenResults.length;
+
+    if (screenResults.length === 0) {
+        emptyEl.style.display = 'block';
+        exportEl.style.display = 'none';
+        statsEl.style.display = 'none';
+        container.innerHTML = '';
+        dqCont.innerHTML = '';
+        slCont.innerHTML = '';
+        return;
+    }
+
+    emptyEl.style.display = 'none';
+    exportEl.style.display = 'flex';
+    statsEl.style.display = 'flex';
+
+    var pass = screenResults.filter(function(c) { return c.verdict === 'PASS'; }).length;
+    var maybe = screenResults.filter(function(c) { return c.verdict === 'MAYBE'; }).length;
+    var fail = screenResults.filter(function(c) { return c.verdict === 'FAIL'; }).length;
+    statsEl.innerHTML = '<div class="stat-chip sp"><span class="sn">' + pass + '</span> Pass</div>' +
+        '<div class="stat-chip sw"><span class="sn">' + maybe + '</span> Maybe</div>' +
+        '<div class="stat-chip sf"><span class="sn">' + fail + '</span> Fail</div>' +
+        '<div class="stat-chip"><span class="sn">' + screenResults.length + '</span> Total</div>';
+
+    var qualified = screenResults.filter(function(c) { return !c.disqualified; })
+        .sort(function(a, b) { return (b.composite || 0) - (a.composite || 0); });
+    var disqualified = screenResults.filter(function(c) { return c.disqualified; });
+
+    container.innerHTML = qualified.map(function(c) {
+        var vc = c.verdict === 'PASS' ? 'v-pass' : c.verdict === 'MAYBE' ? 'v-warn' : 'v-fail';
+        var sc = function(v) { return v >= 7 ? 'hi' : v >= 4 ? 'md' : 'lo'; };
+        var cvClean = c.cvNotes === 'Clean';
+        var noFlags = c.redFlags === 'None';
+
+        var kwHtml = '';
+        if (c.matchedKw && c.matchedKw.length > 0)
+            kwHtml += c.matchedKw.map(function(k) { return '<span class="kw-match"><i class="fas fa-check" style="font-size:9px"></i> ' + esc(k) + '</span>'; }).join('');
+        if (c.missedKw && c.missedKw.length > 0)
+            kwHtml += c.missedKw.map(function(k) { return '<span class="kw-miss"><i class="fas fa-times" style="font-size:9px"></i> ' + esc(k) + '</span>'; }).join('');
+
+        return '<div class="cand-card ' + vc + '">' +
+            '<button class="cand-del" onclick="removeResult(' + c.id + ')"><i class="fas fa-times"></i></button>' +
+            '<div class="cand-header"><div>' +
+            '<div class="cand-name">' + esc(c.name) + '</div>' +
+            '<div class="cand-sub">' + esc(c.fileName) + ' &bull; Screened for: ' + esc(c.reqTitle) + ' (' + esc(c.reqTerritory) + ')</div>' +
+            '</div><div class="cand-verdict">' + c.verdictIcon + ' ' + c.verdict + '</div></div>' +
+            '<div class="cand-reason">' + esc(c.reason) + '</div>' +
+            '<div class="score-bar">' +
+            '<div class="score-item"><div class="score-lbl">Cold Call</div><div class="score-ring ' + sc(c.coldCall) + '">' + c.coldCall + '</div></div>' +
+            '<div class="score-item"><div class="score-lbl">Tech BG</div><div class="score-ring ' + sc(c.techBG) + '">' + c.techBG + '</div></div>' +
+            '<div class="score-item"><div class="score-lbl">Stability</div><div class="score-ring ' + sc(c.stability) + '">' + c.stability + '</div></div>' +
+            '</div>' +
+            (kwHtml ? '<div class="cand-keywords">' + kwHtml + '</div>' : '') +
+            '<div class="cand-meta" style="margin-top:10px">' +
+            '<div class="meta-box"><div class="meta-lbl">CV Integrity</div><div class="meta-val ' + (cvClean ? 'clean' : 'issue') + '">' + (cvClean ? 'Clean' : esc(c.cvNotes)) + '</div></div>' +
+            '<div class="meta-box"><div class="meta-lbl">Red Flag</div><div class="meta-val ' + (noFlags ? 'none' : 'flag') + '">' + (noFlags ? 'None' : esc(c.redFlags)) + '</div></div>' +
+            '</div></div>';
+    }).join('');
+
+    // DQs
+    if (disqualified.length > 0) {
+        dqCont.innerHTML = '<h4 style="color:var(--red);margin:24px 0 12px;font-size:14px;text-transform:uppercase;letter-spacing:1px"><i class="fas fa-ban"></i> Hard Disqualified (' + disqualified.length + ')</h4>' +
+            disqualified.map(function(c) {
+                return '<div class="dq-strip"><span class="dq-name">' + esc(c.name) + '</span><span>' + esc(c.fileName) + '</span><span style="margin-left:8px">' + esc(c.dqReason) + '</span>' +
+                    '<button class="file-remove" onclick="removeResult(' + c.id + ')" style="margin-left:auto"><i class="fas fa-times"></i></button></div>';
+            }).join('');
+    } else {
+        dqCont.innerHTML = '';
+    }
+
+    // Shortlist
+    var shortlist = qualified.filter(function(c) { return c.verdict === 'PASS' || c.verdict === 'MAYBE'; })
+        .sort(function(a, b) { return (b.composite || 0) - (a.composite || 0); });
+
+    if (shortlist.length > 0) {
+        slCont.innerHTML = '<div class="shortlist"><h3><i class="fas fa-trophy"></i> Ranked Shortlist &mdash; Interview These</h3>' +
+            shortlist.map(function(c, i) {
+                var cvClean = c.cvNotes === 'Clean';
+                var noFlags = c.redFlags === 'None';
+                var probe = '';
+                if (!cvClean) probe = 'Probe CV integrity: ' + c.cvNotes + '.';
+                else if (!noFlags) probe = 'Probe: ' + c.redFlags + '.';
+                else if (c.coldCall < 7) probe = 'Ask for specific cold call metrics — daily dials, connect rates, pipeline generated.';
+                else if (c.techBG < 6) probe = 'Test technical fluency — can they articulate SD-WAN vs MPLS and SASE value prop?';
+                else if (c.stability < 7) probe = 'Walk through each transition — look for upward mobility logic vs flight risk.';
+                else probe = 'Strong profile — focus on culture fit and motivation for Versa specifically.';
+                if (!cvClean && probe.indexOf('CV integrity') === -1) probe += ' Also flag CV issue: ' + c.cvNotes + '.';
+
+                return '<div class="sl-item"><div class="sl-rank">' + (i + 1) + '</div>' +
+                    '<div class="sl-name">' + esc(c.name) + ' ' + c.verdictIcon + '</div>' +
+                    '<div class="sl-probe">' + esc(probe) + '</div></div>';
+            }).join('') + '</div>';
+    } else {
+        slCont.innerHTML = '';
+    }
+}
+
+function removeResult(id) {
+    screenResults = screenResults.filter(function(c) { return c.id !== id; });
+    persistResults();
+    renderResults();
+}
+
+function clearResults() {
+    if (!confirm('Remove all screening results?')) return;
+    screenResults = [];
+    persistResults();
+    renderResults();
+}
+
+// ══════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════
+function exportCSV() {
+    var headers = ['Rank','Name','File','Job Req','Territory','Verdict','Reason','Cold Call','Tech BG','Stability','Matched Keywords','Missed Keywords','CV Integrity','Red Flags'];
+    var sorted = screenResults.slice().sort(function(a, b) { return (b.composite || 0) - (a.composite || 0); });
+    var rows = sorted.map(function(c, i) {
+        return [c.disqualified ? 'DQ' : i + 1, c.name, c.fileName, c.reqTitle, c.reqTerritory,
+            c.disqualified ? 'DQ' : c.verdict, c.disqualified ? c.dqReason : c.reason,
+            c.coldCall, c.techBG, c.stability,
+            (c.matchedKw || []).join('; '), (c.missedKw || []).join('; '),
+            c.cvNotes, c.redFlags
+        ].map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+    });
+    var csv = [headers.join(',')].concat(rows).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'versa-cv-screening-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+}
+
+function copyShortlist() {
+    var shortlist = screenResults
+        .filter(function(c) { return !c.disqualified && (c.verdict === 'PASS' || c.verdict === 'MAYBE'); })
+        .sort(function(a, b) { return (b.composite || 0) - (a.composite || 0); });
+    if (shortlist.length === 0) { alert('No candidates on shortlist'); return; }
+
+    var text = 'CV SCREENING RESULTS\n' + '='.repeat(50) + '\n\n';
+    shortlist.forEach(function(c) {
+        text += '| ' + c.name + ' | ' + c.verdictIcon + ' ' + c.verdict + ' | ' + c.reason + ' | Cold Call ' + c.coldCall + '/10 | Tech BG ' + c.techBG + '/10 | Stability ' + c.stability + '/10 |\n';
+        text += 'CV Integrity: ' + c.cvNotes + '\nRed Flag: ' + c.redFlags + '\n\n';
+    });
+    text += 'RANKED SHORTLIST\n' + '-'.repeat(30) + '\n';
+    shortlist.forEach(function(c, i) {
+        text += (i + 1) + '. ' + c.name + ' \u2014 ';
+        if (c.cvNotes !== 'Clean') text += 'Probe CV: ' + c.cvNotes;
+        else if (c.coldCall < 7) text += 'Ask for cold call metrics';
+        else if (c.techBG < 6) text += 'Test SASE/SD-WAN fluency';
+        else text += 'Strong — focus on culture fit';
+        text += '\n';
+    });
+    navigator.clipboard.writeText(text).then(function() { alert('Copied!'); });
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+renderReqs();
+renderResults();
+document.getElementById('req-count').textContent = jobReqs.length;
+document.getElementById('res-count').textContent = screenResults.length;
+
+// Set PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+</body>
+</html>
